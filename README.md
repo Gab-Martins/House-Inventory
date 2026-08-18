@@ -6,6 +6,12 @@ do que está em falta ou acabando. Feito para usar no celular, direto da tela de
 HTML, CSS e JavaScript puros — sem build, sem dependências, sem servidor. A pasta do
 repositório é exatamente o que o GitHub Pages publica.
 
+## O gato
+
+O gato no cartão de compras reage ao estoque: dorme quando não falta nada, abre os olhos
+quando aparecem itens na lista e arregala quando passa de cinco. É o mesmo dado do selo
+na aba, só que dá para ler de relance.
+
 ## Como funciona
 
 Cada item tem uma quantidade atual, um **mínimo** e um **ideal**:
@@ -76,7 +82,7 @@ arquivo (`file://`) desliga o service worker e os módulos JavaScript.
 | Arquivo | O que faz |
 | --- | --- |
 | `index.html` | as três telas: Inventário, Compras e Ajustes |
-| `css/estilo.css` | tema (claro/escuro), layout de celular e o estilo de impressão |
+| `css/estilo.css` | paleta pastel (clara/escura), layout de celular e o estilo de impressão |
 | `js/dados.js` | persistência e regras de estoque — trocar por um backend mexe só aqui |
 | `js/inventario.js` | busca, filtros, ajuste de quantidade e formulário do item |
 | `js/compras.js` | lista de compras, total, copiar/compartilhar, CSV e impressão |

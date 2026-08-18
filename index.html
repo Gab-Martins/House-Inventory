@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Inventário da Casa</title>
 <meta name="description" content="Controle os itens da casa e gere a lista de compras do que está faltando.">
-<meta name="theme-color" content="#2f6b4f">
+<meta name="theme-color" content="#fdeaf2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Inventário">
 <link rel="manifest" href="manifest.json">
@@ -48,9 +48,38 @@
 
   <section class="tela" id="tela-compras" role="tabpanel">
     <div class="cartao-total">
-      <span class="cartao-total__rotulo">Total estimado</span>
-      <strong class="cartao-total__valor" id="total-compras">R$ 0,00</strong>
-      <p class="cartao-total__nota" id="nota-compras"></p>
+      <svg class="gato" id="gato" data-humor="dormindo" viewBox="0 0 64 64" role="img"
+           aria-label="Gato do inventário: dorme quando não falta nada e arregala os olhos quando a lista cresce">
+        <polygon class="gato__pelo" points="13,26 15,8 30,17"/>
+        <polygon class="gato__pelo" points="51,26 49,8 34,17"/>
+        <polygon class="gato__orelha-interna" points="16,24 17,13 26,18"/>
+        <polygon class="gato__orelha-interna" points="48,24 47,13 38,18"/>
+        <ellipse class="gato__pelo" cx="32" cy="37" rx="23" ry="20"/>
+        <ellipse class="gato__bochecha" cx="15" cy="43" rx="4.6" ry="3"/>
+        <ellipse class="gato__bochecha" cx="49" cy="43" rx="4.6" ry="3"/>
+        <g class="olhos-normais">
+          <circle class="gato__cara" cx="24" cy="35" r="3"/>
+          <circle class="gato__cara" cx="40" cy="35" r="3"/>
+        </g>
+        <g class="olhos-grandes">
+          <circle class="gato__cara" cx="24" cy="35" r="4.6"/>
+          <circle class="gato__cara" cx="40" cy="35" r="4.6"/>
+        </g>
+        <g class="olhos-fechados">
+          <path class="gato__traco" d="M20 35 q4 4.5 8 0"/>
+          <path class="gato__traco" d="M36 35 q4 4.5 8 0"/>
+        </g>
+        <path class="gato__cara" d="M32 43.4 l-2.7 -2.6 h5.4 z"/>
+        <path class="gato__traco" d="M32 43.4 v2.2 M32 45.6 q-2.8 2.6 -5.2 .2 M32 45.6 q2.8 2.6 5.2 .2"/>
+        <path class="gato__traco" d="M12 38 H3 M12 43 H4 M52 38 H61 M52 43 H60"/>
+        <text class="gato__sono" x="49" y="15" font-size="9">z</text>
+        <text class="gato__sono" x="56" y="8" font-size="6">z</text>
+      </svg>
+      <div>
+        <span class="cartao-total__rotulo">Total estimado</span>
+        <strong class="cartao-total__valor" id="total-compras">R$ 0,00</strong>
+        <p class="cartao-total__nota" id="nota-compras"></p>
+      </div>
     </div>
 
     <div class="acoes">

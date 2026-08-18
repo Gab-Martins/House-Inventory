@@ -110,8 +110,13 @@ export function renderizarCompras() {
   selo.hidden = linhas.length === 0;
   selo.textContent = String(linhas.length);
 
+  // O gato reage ao tamanho da lista: dorme com a despensa cheia, arregala os
+  // olhos quando a compra fica grande.
+  document.getElementById('gato').dataset.humor =
+    linhas.length === 0 ? 'dormindo' : linhas.length > 5 ? 'alerta' : 'curioso';
+
   if (!linhas.length) {
-    lista.replaceChildren(el('p', { classe: 'vazio', texto: 'Nada faltando por enquanto. Quando algum item chegar no mínimo, ele aparece aqui.' }));
+    lista.replaceChildren(el('p', { classe: 'vazio', texto: 'Nada faltando — o gato voltou a dormir. Quando um item chegar no mínimo, ele aparece aqui.' }));
     return;
   }
 
