@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inventário da Casa</title>
+<meta name="description" content="Controle os itens da casa e gere a lista de compras do que está faltando.">
+<meta name="theme-color" content="#2f6b4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Inventário">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icones/icone-192.png">
+<link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+<header class="cabecalho">
+  <h1 class="cabecalho__titulo">Inventário da Casa</h1>
+  <nav class="abas" role="tablist">
+    <button class="aba aba--ativa" role="tab" data-tela="inventario" aria-selected="true">Inventário</button>
+    <button class="aba" role="tab" data-tela="compras" aria-selected="false">Compras <span class="selo" id="selo-compras" hidden>0</span></button>
+    <button class="aba" role="tab" data-tela="ajustes" aria-selected="false">Ajustes</button>
+  </nav>
+</header>
+
+<main>
+
+  <section class="tela tela--ativa" id="tela-inventario" role="tabpanel">
+    <div class="filtros">
+      <input type="search" id="busca" class="campo campo--busca" placeholder="Buscar item..." autocomplete="off">
+      <div class="filtros__linha">
+        <select id="filtro-categoria" class="campo"><option value="">Todas as categorias</option></select>
+        <select id="filtro-local" class="campo"><option value="">Todos os locais</option></select>
+        <select id="ordenacao" class="campo">
+          <option value="nome">Nome (A–Z)</option>
+          <option value="estoque">Menor estoque</option>
+          <option value="valor">Maior valor</option>
+          <option value="recente">Atualizado recente</option>
+        </select>
+      </div>
+      <label class="alternador"><input type="checkbox" id="filtro-repor"> Mostrar só o que precisa repor</label>
+    </div>
+
+    <div id="lista-inventario" class="lista"></div>
+    <div class="resumo" id="resumo-inventario"></div>
+  </section>
+
+  <section class="tela" id="tela-compras" role="tabpanel">
+    <div class="cartao-total">
+      <span class="cartao-total__rotulo">Total estimado</span>
+      <strong class="cartao-total__valor" id="total-compras">R$ 0,00</strong>
+      <p class="cartao-total__nota" id="nota-compras"></p>
+    </div>
+
+    <div class="acoes">
+      <button class="botao" id="btn-copiar">Copiar lista</button>
+      <button class="botao" id="btn-csv">Exportar CSV</button>
+      <button class="botao" id="btn-imprimir">Imprimir</button>
+    </div>
+
+    <form class="linha-extra" id="form-extra">
+      <input type="text" id="extra-nome" class="campo" placeholder="Adicionar item avulso" autocomplete="off" required>
+      <input type="number" id="extra-preco" class="campo campo--curto" placeholder="R$" step="0.01" min="0" inputmode="decimal">
+      <button class="botao botao--primario" type="submit">Add</button>
+    </form>
+
+    <div id="lista-compras" class="lista"></div>
+
+    <div class="acoes acoes--rodape">
+      <button class="botao botao--primario botao--largo" id="btn-confirmar">Confirmar itens comprados</button>
+    </div>
+  </section>
+
+  <section class="tela" id="tela-ajustes" role="tabpanel">
+    <div class="bloco">
+      <h2>Backup</h2>
+      <p class="bloco__texto">Os dados ficam salvos só neste aparelho. Exporte de vez em quando — e sempre antes de trocar de celular.</p>
+      <div class="acoes">
+        <button class="botao botao--primario" id="btn-exportar">Exportar backup (.json)</button>
+        <button class="botao" id="btn-importar">Importar backup</button>
+        <input type="file" id="arquivo-importar" accept="application/json,.json" hidden>
+      </div>
+      <p class="bloco__texto" id="info-backup"></p>
+    </div>
+
+    <div class="bloco">
+      <h2>Começar rápido</h2>
+      <p class="bloco__texto">Carrega uma lista de itens comuns de casa, sem apagar o que você já cadastrou.</p>
+      <button class="botao" id="btn-exemplos">Carregar itens comuns</button>
+    </div>
+
+    <div class="bloco bloco--perigo">
+      <h2>Apagar tudo</h2>
+      <p class="bloco__texto">Remove todos os itens deste aparelho. Não tem como desfazer.</p>
+      <button class="botao botao--perigo" id="btn-limpar">Apagar inventário</button>
+    </div>
+
+    <p class="rodape-versao">Inventário da Casa · os dados ficam neste aparelho</p>
+  </section>
+
+</main>
+
+<button class="fab" id="btn-novo" aria-label="Cadastrar novo item">+</button>
+
+<dialog class="modal" id="modal-item">
+  <form id="form-item">
+    <h2 class="modal__titulo" id="modal-titulo">Novo item</h2>
+
+    <label class="rotulo">Nome
+      <input type="text" name="nome" class="campo" required autocomplete="off">
+    </label>
+
+    <div class="grade-2">
+      <label class="rotulo">Categoria
+        <input type="text" name="categoria" class="campo" list="lista-categorias" autocomplete="off">
+      </label>
+      <label class="rotulo">Local
+        <input type="text" name="local" class="campo" list="lista-locais" autocomplete="off">
+      </label>
+    </div>
+
+    <div class="grade-2">
+      <label class="rotulo">Quantidade
+        <input type="number" name="quantidade" class="campo" step="0.01" min="0" inputmode="decimal" value="1" required>
+      </label>
+      <label class="rotulo">Unidade
+        <input type="text" name="unidade" class="campo" list="lista-unidades" value="un" autocomplete="off">
+      </label>
+    </div>
+
+    <div class="grade-2">
+      <label class="rotulo">Mínimo <span class="dica">avisa abaixo disso</span>
+        <input type="number" name="quantidadeMinima" class="campo" step="0.01" min="0" inputmode="decimal" value="1" required>
+      </label>
+      <label class="rotulo">Ideal <span class="dica">repõe até aqui</span>
+        <input type="number" name="quantidadeAlvo" class="campo" step="0.01" min="0" inputmode="decimal" value="2" required>
+      </label>
+    </div>
+
+    <div class="grade-2">
+      <label class="rotulo">Preço unitário (R$)
+        <input type="number" name="preco" class="campo" step="0.01" min="0" inputmode="decimal" placeholder="0,00">
+      </label>
+      <label class="rotulo">Onde comprar
+        <input type="text" name="loja" class="campo" autocomplete="off">
+      </label>
+    </div>
+
+    <label class="rotulo">Observações
+      <textarea name="observacoes" class="campo" rows="2"></textarea>
+    </label>
+
+    <div class="modal__acoes">
+      <button type="button" class="botao botao--perigo" id="btn-excluir">Excluir</button>
+      <span class="espaco"></span>
+      <button type="button" class="botao" id="btn-cancelar">Cancelar</button>
+      <button type="submit" class="botao botao--primario">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
+<datalist id="lista-categorias"></datalist>
+<datalist id="lista-locais"></datalist>
+<datalist id="lista-unidades">
+  <option value="un"></option><option value="kg"></option><option value="g"></option>
+  <option value="L"></option><option value="ml"></option><option value="pacote"></option>
+  <option value="caixa"></option><option value="rolo"></option><option value="frasco"></option>
+</datalist>
+
+<div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
