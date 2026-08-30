@@ -3,8 +3,9 @@
 App para controlar os itens da casa (quanto tem, quanto custa) e gerar a lista de compras
 do que está em falta ou acabando. Feito para usar no celular, direto da tela de início.
 
-HTML, CSS e JavaScript puros — sem build, sem dependências, sem servidor. A pasta do
-repositório é exatamente o que o GitHub Pages publica.
+HTML, CSS e JavaScript puros — sem etapa de build. A pasta do repositório é exatamente o
+que o GitHub Pages publica. Os dados ficam num projeto **Supabase** para sincronizar entre
+aparelhos (ver *Onde os dados ficam*).
 
 ## Código de barras e validade
 
@@ -40,24 +41,34 @@ ao nível ideal sozinho.
 
 ## Onde os dados ficam
 
-No próprio aparelho, no `localStorage` do navegador. Consequências:
+Na nuvem, num projeto **Supabase** (banco Postgres). Cada aparelho entra na **mesma conta
+da casa** e vê o mesmo inventário — celular, tablet e computador ficam sincronizados. Ao
+abrir o app (ou voltar para ele), ele recarrega o que o outro aparelho mudou.
 
-- **Não sincroniza** entre celular e computador — cada aparelho tem seu inventário.
-- Limpar os dados do navegador apaga o inventário.
-- No iPhone, o Safari descarta dados de sites **não instalados** depois de ~7 dias sem
-  uso. Adicionar o app à tela de início resolve isso.
+Consequências:
 
-Por isso: use **Ajustes → Exportar backup** de vez em quando, e sempre antes de trocar de
-aparelho. O arquivo `.json` volta inteiro em **Importar backup** (inclusive para copiar o
-inventário do computador para o celular).
+- Precisa de **internet** para ver e editar (a escolha foi essa; não guarda offline).
+- Os dados só aparecem para quem entra na conta. Quem protege isso são as regras de
+  **RLS** no banco, então a chave publicável pode ficar no código, no repositório público.
+- **Ajustes → Exportar backup** ainda guarda uma cópia `.json`; **Importar backup**
+  substitui o inventário da conta pelo arquivo.
+
+### Configuração do Supabase (uma vez)
+
+1. Crie um projeto em [supabase.com](https://supabase.com).
+2. No **SQL Editor**, rode o script que cria as tabelas `itens` e `extras` com RLS
+   (ver histórico do commit da integração).
+3. Em **Authentication → Users**, crie o usuário da casa (e-mail + senha, com *Auto
+   Confirm*). É essa conta que os aparelhos usam para entrar.
+4. Em **Project Settings → API**, copie a **Project URL** e a chave **publishable** para
+   `js/config.js`.
 
 ## Instalar no celular
 
-1. Abra o endereço publicado no navegador do celular.
+1. Abra o endereço publicado no navegador do celular e **entre com a conta da casa**.
 2. **iPhone (Safari):** botão de compartilhar → *Adicionar à Tela de Início*.
    **Android (Chrome):** menu ⋮ → *Instalar app* / *Adicionar à tela inicial*.
-3. Abra pelo ícone. A partir daí funciona em tela cheia e **sem internet** — dá para usar
-   dentro do mercado com o celular offline.
+3. Abra pelo ícone. A sessão fica guardada, então você entra uma vez por aparelho.
 
 ## Publicar no GitHub Pages
 
@@ -96,15 +107,18 @@ arquivo (`file://`) desliga o service worker e os módulos JavaScript.
 | --- | --- |
 | `index.html` | as três telas: Inventário, Compras e Ajustes |
 | `css/estilo.css` | paleta pastel (clara/escura), layout de celular e o estilo de impressão |
-| `js/dados.js` | persistência e regras de estoque — trocar por um backend mexe só aqui |
+| `js/config.js` | endereço do projeto Supabase e a chave publicável |
+| `js/dados.js` | estado em memória espelhado no Supabase, e as regras de estoque |
+| `js/auth.js` | login com a conta da casa e o controle de quem vê o app |
 | `js/inventario.js` | busca, filtros, validade, ajuste de quantidade e formulário do item |
 | `js/compras.js` | lista de compras, total, copiar/compartilhar, CSV e impressão |
 | `js/scanner.js` | leitura de código de barras pela câmera (nativo + ZXing no iPhone) |
 | `js/produtos.js` | busca do nome do produto pelo código no Open Food Facts |
 | `js/exemplos.js` | itens comuns de casa do "Começar rápido" (preços são chutes iniciais) |
 | `js/vendor/zxing.min.js` | leitor de código de barras para navegadores sem `BarcodeDetector` |
+| `js/vendor/supabase.min.js` | cliente do Supabase (login e banco) |
 | `js/app.js` | navegação, backup e registro do service worker |
-| `sw.js` | cache do app para funcionar offline |
+| `sw.js` | cache do casco do app (as três telas) para carregar rápido |
 
 ## Primeiros passos sugeridos
 

@@ -1,6 +1,6 @@
 // Cache do app shell: o inventário precisa abrir sem internet, dentro do mercado.
 
-const CACHE = 'inventario-v2';
+const CACHE = 'inventario-v3';
 
 const ARQUIVOS = [
   './',
@@ -8,7 +8,9 @@ const ARQUIVOS = [
   './manifest.json',
   './css/estilo.css',
   './js/app.js',
+  './js/config.js',
   './js/dados.js',
+  './js/auth.js',
   './js/inventario.js',
   './js/compras.js',
   './js/exemplos.js',
@@ -16,6 +18,7 @@ const ARQUIVOS = [
   './js/scanner.js',
   './js/produtos.js',
   './js/vendor/zxing.min.js',
+  './js/vendor/supabase.min.js',
   './icones/icone-192.png',
   './icones/icone-512.png',
   './icones/apple-touch-icon.png'

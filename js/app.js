@@ -5,6 +5,7 @@ import { aviso, baixarArquivo } from './util.js';
 import { iniciarInventario, renderizarInventario } from './inventario.js';
 import { iniciarCompras, renderizarCompras } from './compras.js';
 import { itensExemplo } from './exemplos.js';
+import { sair } from './auth.js';
 
 // ── Navegação ──────────────────────────────────────────────────
 
@@ -33,11 +34,12 @@ function exportarBackup() {
 
 function importarBackup(arquivo) {
   const leitor = new FileReader();
-  leitor.onload = () => {
+  leitor.onload = async () => {
     try {
       const quantos = dados.obter().itens.length;
-      if (quantos && !confirm(`Isto substitui os ${quantos} itens deste aparelho pelo conteúdo do backup. Continuar?`)) return;
-      aviso(`${dados.importarTexto(leitor.result)} itens importados.`);
+      if (quantos && !confirm(`Isto substitui os ${quantos} itens da conta pelo conteúdo do backup. Continuar?`)) return;
+      const total = await dados.importarTexto(leitor.result);
+      aviso(`${total} itens importados.`);
     } catch (erro) {
       console.error(erro);
       aviso('Arquivo inválido. Use um backup exportado pelo app.');
@@ -69,12 +71,14 @@ function ligarAjustes() {
     aviso(novos ? `${novos} itens adicionados.` : 'Esses itens já estão no inventário.');
   });
 
-  document.getElementById('btn-limpar').addEventListener('click', () => {
-    if (!confirm('Apagar todos os itens deste aparelho?')) return;
-    if (!confirm('Tem certeza? Isso não pode ser desfeito. Exporte um backup antes se tiver dúvida.')) return;
-    dados.limparTudo();
+  document.getElementById('btn-limpar').addEventListener('click', async () => {
+    if (!confirm('Apagar todos os itens da conta?')) return;
+    if (!confirm('Tem certeza? Isso não pode ser desfeito e apaga em todos os aparelhos. Exporte um backup antes se tiver dúvida.')) return;
+    await dados.limparTudo();
     aviso('Inventário apagado.');
   });
+
+  document.getElementById('btn-sair').addEventListener('click', sair);
 }
 
 // ── Início ─────────────────────────────────────────────────────
@@ -84,6 +88,13 @@ document.querySelectorAll('.aba').forEach(aba => {
 });
 
 window.addEventListener('inventario:erro', evento => aviso(evento.detail));
+
+// Ao voltar para o app, recarrega da nuvem — pega o que o outro aparelho mudou.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && dados.temSessao()) {
+    dados.carregar().catch(erro => console.warn('Não recarregou da nuvem:', erro));
+  }
+});
 
 iniciarInventario();
 iniciarCompras();

@@ -15,6 +15,21 @@
 </head>
 <body>
 
+<div class="login" id="login">
+  <form class="login__cartao" id="form-login">
+    <h1 class="login__titulo">Inventário da Casa</h1>
+    <p class="login__texto">Entre com a conta da casa para ver o inventário nos dois aparelhos.</p>
+    <label class="rotulo">E-mail
+      <input type="email" name="email" class="campo" autocomplete="username" required>
+    </label>
+    <label class="rotulo">Senha
+      <input type="password" name="senha" class="campo" autocomplete="current-password" required>
+    </label>
+    <p class="login__erro" id="login-erro" hidden></p>
+    <button type="submit" class="botao botao--primario botao--largo" id="btn-entrar">Entrar</button>
+  </form>
+</div>
+
 <header class="cabecalho">
   <h1 class="cabecalho__titulo">Inventário da Casa</h1>
   <nav class="abas" role="tablist">
@@ -77,8 +92,14 @@
 
   <section class="tela" id="tela-ajustes" role="tabpanel">
     <div class="bloco">
+      <h2>Conta</h2>
+      <p class="bloco__texto">Conectado como <strong id="conta-email"></strong>. O inventário é o mesmo em todos os aparelhos que entram nesta conta.</p>
+      <button class="botao" id="btn-sair">Sair</button>
+    </div>
+
+    <div class="bloco">
       <h2>Backup</h2>
-      <p class="bloco__texto">Os dados ficam salvos só neste aparelho. Exporte de vez em quando — e sempre antes de trocar de celular.</p>
+      <p class="bloco__texto">O inventário fica salvo na nuvem, mas dá para guardar uma cópia em arquivo — útil antes de mudanças grandes.</p>
       <div class="acoes">
         <button class="botao botao--primario" id="btn-exportar">Exportar backup (.json)</button>
         <button class="botao" id="btn-importar">Importar backup</button>
@@ -213,6 +234,7 @@
 
 <div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
 
+<script src="js/vendor/supabase.min.js"></script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>
