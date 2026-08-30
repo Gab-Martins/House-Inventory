@@ -205,6 +205,8 @@ textarea.campo { min-height: 0; resize: vertical; }
 
 .etiqueta--baixo { background: var(--mel-claro); color: var(--mel); font-weight: 700; }
 .etiqueta--falta { background: var(--morango-claro); color: var(--cereja); font-weight: 700; }
+.etiqueta--vence { background: var(--mel-claro); color: var(--mel); font-weight: 700; }
+.etiqueta--vencido { background: var(--morango-claro); color: var(--cereja); font-weight: 700; }
 
 .contador { display: flex; align-items: center; gap: .2rem; }
 
@@ -243,12 +245,7 @@ textarea.campo { min-height: 0; resize: vertical; }
   text-align: center;
 }
 
-/* O cartão do total é o herói da tela de compras: o gato reage ao tamanho da lista. */
 .cartao-total {
-  display: grid;
-  grid-template-columns: 74px 1fr;
-  align-items: center;
-  gap: .9rem;
   padding: 1rem;
   margin-bottom: .8rem;
   border: 1.5px solid var(--morango-claro);
@@ -256,22 +253,6 @@ textarea.campo { min-height: 0; resize: vertical; }
   background: linear-gradient(150deg, var(--leite), var(--nuvem));
   box-shadow: var(--sombra);
 }
-
-.gato { width: 74px; height: 74px; }
-.gato__pelo { fill: var(--morango-claro); }
-.gato__orelha-interna { fill: var(--morango); opacity: .55; }
-.gato__cara { fill: var(--morango); }
-.gato__bochecha { fill: var(--morango); opacity: .35; }
-.gato__traco { fill: none; stroke: var(--morango); stroke-width: 2.4; stroke-linecap: round; }
-.gato__sono { fill: var(--lavanda); font-family: var(--fonte-fofa); font-weight: 700; }
-
-/* Sem lista: gato dormindo. Lista pequena: olhos normais. Lista grande: olhos arregalados. */
-.gato .olhos-fechados, .gato .olhos-grandes, .gato .gato__sono { display: none; }
-.gato[data-humor="dormindo"] .olhos-normais { display: none; }
-.gato[data-humor="dormindo"] .olhos-fechados,
-.gato[data-humor="dormindo"] .gato__sono { display: block; }
-.gato[data-humor="alerta"] .olhos-normais { display: none; }
-.gato[data-humor="alerta"] .olhos-grandes { display: block; }
 
 .cartao-total__rotulo { color: var(--texto-fraco); font-size: .85rem; }
 
@@ -331,7 +312,6 @@ textarea.campo { min-height: 0; resize: vertical; }
 .botao--largo { flex: 1; }
 .espaco { flex: 1; }
 
-/* O botão de cadastrar tem orelhinhas — é o único enfeite puro da interface. */
 .fab {
   position: fixed;
   right: 1rem;
@@ -349,21 +329,21 @@ textarea.campo { min-height: 0; resize: vertical; }
   cursor: pointer;
 }
 
-.fab::before, .fab::after {
-  content: '';
-  position: absolute;
-  top: -9px;
-  width: 0;
-  height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-bottom: 13px solid var(--morango);
+@media (prefers-color-scheme: dark) { .fab--novo { color: #35202b; } }
+
+/* O leitor de código fica ao lado do botão de cadastrar, com visual secundário. */
+.fab--scan {
+  right: calc(1rem + 58px + .7rem);
+  background: var(--nuvem);
+  border: 1.5px solid var(--morango);
+  color: var(--morango);
+  box-shadow: var(--sombra);
+  display: grid;
+  place-items: center;
 }
 
-.fab::before { left: 7px; transform: rotate(-14deg); }
-.fab::after { right: 7px; transform: rotate(14deg); }
-
-@media (prefers-color-scheme: dark) { .fab { color: #35202b; } }
+/* display: grid acima ganharia do [hidden] do navegador — reforça o esconder. */
+.fab--scan[hidden] { display: none; }
 
 /* ── Lista de compras ─────────────────────────────────────────── */
 .linha-extra { display: flex; gap: .5rem; margin: .8rem 0; }
@@ -378,6 +358,23 @@ textarea.campo { min-height: 0; resize: vertical; }
   letter-spacing: .1em;
   text-transform: uppercase;
 }
+
+/* O grupo dos que estão perto de vencer chama mais atenção que as categorias. */
+.grupo__titulo--vencendo { color: var(--cereja); }
+.grupo__titulo--vencendo::before { content: '⏰ '; }
+
+.selo-validade {
+  display: inline-block;
+  margin-left: .45rem;
+  padding: .02rem .5rem;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  vertical-align: baseline;
+}
+
+.selo-validade--vence { background: var(--mel-claro); color: var(--mel); }
+.selo-validade--vencido { background: var(--morango-claro); color: var(--cereja); }
 
 .compra {
   display: grid;
@@ -444,6 +441,43 @@ textarea.campo { min-height: 0; resize: vertical; }
 .dica { font-weight: 400; font-style: italic; opacity: .8; }
 .grade-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
 
+.campo-com-botao { display: flex; gap: .4rem; align-items: stretch; margin-top: .2rem; }
+.campo-com-botao .campo { flex: 1; margin-top: 0; }
+
+.botao--escanear {
+  flex: none;
+  min-width: 48px;
+  padding: 0 .7rem;
+  color: var(--morango);
+  border-color: var(--morango);
+  display: grid;
+  place-items: center;
+}
+
+/* ── Leitor de código de barras ───────────────────────────────── */
+.modal--scanner { width: min(460px, 100%); }
+
+.scanner__video-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+#scanner-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.scanner__mira {
+  position: absolute;
+  inset: 26% 12%;
+  border: 2.5px solid rgba(255, 255, 255, .9);
+  border-radius: 12px;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .28);
+}
+
+.scanner__dica { margin: .8rem 0 0; color: var(--texto-fraco); font-size: .9rem; text-align: center; }
+
 /* ── Aviso flutuante ──────────────────────────────────────────── */
 .aviso {
   position: fixed;
@@ -471,5 +505,4 @@ textarea.campo { min-height: 0; resize: vertical; }
   .compra { border: none; border-bottom: 1px solid #ccc; border-radius: 0; background: none; }
   .cartao-total { border: 1px solid #000; background: none; box-shadow: none; }
   .cartao-total__valor { color: #000; }
-  .gato { width: 46px; height: 46px; }
 }

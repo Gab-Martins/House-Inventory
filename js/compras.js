@@ -8,28 +8,40 @@ const selo = document.getElementById('selo-compras');
 
 const SEM_CATEGORIA = 'Sem categoria';
 const AVULSOS = 'Avulsos';
+const VENCENDO = 'Vencendo';
+
+function estaVencendo(situacaoValidade) {
+  return situacaoValidade === 'vence' || situacaoValidade === 'vencido';
+}
 
 // ── Montagem da lista ──────────────────────────────────────────
 
 export function linhasDaLista() {
   const estado = dados.obter();
 
-  const doEstoque = estado.itens.filter(dados.precisaRepor).map(item => {
-    const quantidade = dados.quantidadeAComprar(item);
-    return {
-      id: item.id,
-      nome: item.nome,
-      categoria: item.categoria || SEM_CATEGORIA,
-      quantidade,
-      unidade: item.unidade,
-      preco: item.preco,
-      subtotal: item.preco == null ? null : dados.arredondar(item.preco * quantidade),
-      onde: item.loja,
-      situacao: dados.status(item),
-      marcado: dados.estaMarcado(item.id),
-      extra: false
-    };
-  });
+  // Entra na lista quem está no mínimo/em falta OU perto de vencer, mesmo com estoque
+  // cheio — o item vencendo vira um lembrete de comprar um novo antes de estragar.
+  const doEstoque = estado.itens
+    .filter(item => dados.precisaRepor(item) || estaVencendo(dados.statusValidade(item)))
+    .map(item => {
+      const quantidade = dados.quantidadeAComprar(item);
+      const validade = dados.statusValidade(item);
+      return {
+        id: item.id,
+        nome: item.nome,
+        categoria: estaVencendo(validade) ? VENCENDO : (item.categoria || SEM_CATEGORIA),
+        quantidade,
+        unidade: item.unidade,
+        preco: item.preco,
+        subtotal: item.preco == null ? null : dados.arredondar(item.preco * quantidade),
+        onde: item.loja,
+        situacao: dados.status(item),
+        validade,
+        diasValidade: dados.diasParaVencer(item),
+        marcado: dados.estaMarcado(item.id),
+        extra: false
+      };
+    });
 
   const avulsos = estado.extras.map(e => ({
     id: e.id,
@@ -41,12 +53,20 @@ export function linhasDaLista() {
     subtotal: e.preco,
     onde: '',
     situacao: 'extra',
+    validade: 'sem',
+    diasValidade: null,
     marcado: e.marcado,
     extra: true
   }));
 
+  // Vencendo primeiro (o lembrete), categorias no meio em ordem, avulsos por último.
+  const peso = categoria => (categoria === VENCENDO ? 0 : categoria === AVULSOS ? 2 : 1);
+
   return [...doEstoque, ...avulsos].sort((a, b) =>
-    a.categoria.localeCompare(b.categoria, 'pt-BR') || a.nome.localeCompare(b.nome, 'pt-BR'));
+    peso(a.categoria) - peso(b.categoria) ||
+    a.categoria.localeCompare(b.categoria, 'pt-BR') ||
+    (a.categoria === VENCENDO ? (a.diasValidade ?? 1e9) - (b.diasValidade ?? 1e9) : 0) ||
+    a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
 export function totalEstimado(linhas) {
@@ -58,6 +78,14 @@ export function totalEstimado(linhas) {
 }
 
 // ── Renderização ───────────────────────────────────────────────
+
+function textoValidade(linha) {
+  if (linha.validade === 'vencido') return 'vencido';
+  const dias = linha.diasValidade;
+  if (dias === 0) return 'vence hoje';
+  if (dias === 1) return 'vence amanhã';
+  return `vence em ${dias}d`;
+}
 
 function linhaDeCompra(linha) {
   const caixa = el('input', {
@@ -76,9 +104,17 @@ function linhaDeCompra(linha) {
   if (linha.situacao === 'falta') detalhes.push('em falta');
   if (linha.onde) detalhes.push(linha.onde);
 
+  const meta = el('div', { classe: 'compra__meta', texto: detalhes.join(' · ') });
+  if (estaVencendo(linha.validade)) {
+    meta.appendChild(el('span', {
+      classe: `selo-validade selo-validade--${linha.validade}`,
+      texto: textoValidade(linha)
+    }));
+  }
+
   const meio = el('div', {}, [
     el('div', { classe: 'compra__nome', texto: linha.nome }),
-    el('div', { classe: 'compra__meta', texto: detalhes.join(' · ') })
+    meta
   ]);
 
   const direita = linha.extra
@@ -110,13 +146,8 @@ export function renderizarCompras() {
   selo.hidden = linhas.length === 0;
   selo.textContent = String(linhas.length);
 
-  // O gato reage ao tamanho da lista: dorme com a despensa cheia, arregala os
-  // olhos quando a compra fica grande.
-  document.getElementById('gato').dataset.humor =
-    linhas.length === 0 ? 'dormindo' : linhas.length > 5 ? 'alerta' : 'curioso';
-
   if (!linhas.length) {
-    lista.replaceChildren(el('p', { classe: 'vazio', texto: 'Nada faltando — o gato voltou a dormir. Quando um item chegar no mínimo, ele aparece aqui.' }));
+    lista.replaceChildren(el('p', { classe: 'vazio', texto: 'Nada faltando nem vencendo. Quando um item chegar no mínimo ou perto da validade, ele aparece aqui.' }));
     return;
   }
 
@@ -125,7 +156,8 @@ export function renderizarCompras() {
   linhas.forEach(linha => {
     if (linha.categoria !== categoriaAtual) {
       categoriaAtual = linha.categoria;
-      blocos.push(el('div', { classe: 'grupo__titulo', texto: categoriaAtual }));
+      const modificador = categoriaAtual === VENCENDO ? ' grupo__titulo--vencendo' : '';
+      blocos.push(el('div', { classe: `grupo__titulo${modificador}`, texto: categoriaAtual }));
     }
     blocos.push(linhaDeCompra(linha));
   });

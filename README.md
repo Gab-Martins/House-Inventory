@@ -6,11 +6,24 @@ do que está em falta ou acabando. Feito para usar no celular, direto da tela de
 HTML, CSS e JavaScript puros — sem build, sem dependências, sem servidor. A pasta do
 repositório é exatamente o que o GitHub Pages publica.
 
-## O gato
+## Código de barras e validade
 
-O gato no cartão de compras reage ao estoque: dorme quando não falta nada, abre os olhos
-quando aparecem itens na lista e arregala quando passa de cinco. É o mesmo dado do selo
-na aba, só que dá para ler de relance.
+Cada item pode guardar um **código de barras** e uma **data de validade**.
+
+- No formulário do item, toque no ícone de código de barras para ler pela câmera. Serve
+  também o botão de escanear na tela de inventário: se o código já existe, o app abre
+  aquele item; se é novo, abre o cadastro já com o código preenchido.
+- Ao ler um código novo, o app tenta descobrir o **nome** do produto na base aberta
+  [Open Food Facts](https://world.openfoodfacts.org). Só o número do código sai do
+  aparelho — preço, validade e o resto continuam locais. Sem internet ou produto
+  desconhecido, é só digitar.
+- O código de barras **não** carrega preço nem validade: isso ninguém coloca no código.
+  Você preenche uma vez e o app lembra do item na próxima leitura.
+- A validade vira um aviso: o item mostra *Vence em X dias* quando falta uma semana ou
+  menos, e *Vencido* quando passa. A ordenação **Vence antes** joga esses para o topo.
+
+A leitura usa o `BarcodeDetector` nativo (Chrome no Android) e cai no leitor ZXing
+(`js/vendor/`) onde ele não existe — é o que faz a câmera funcionar no iPhone/Safari.
 
 ## Como funciona
 
@@ -84,9 +97,12 @@ arquivo (`file://`) desliga o service worker e os módulos JavaScript.
 | `index.html` | as três telas: Inventário, Compras e Ajustes |
 | `css/estilo.css` | paleta pastel (clara/escura), layout de celular e o estilo de impressão |
 | `js/dados.js` | persistência e regras de estoque — trocar por um backend mexe só aqui |
-| `js/inventario.js` | busca, filtros, ajuste de quantidade e formulário do item |
+| `js/inventario.js` | busca, filtros, validade, ajuste de quantidade e formulário do item |
 | `js/compras.js` | lista de compras, total, copiar/compartilhar, CSV e impressão |
+| `js/scanner.js` | leitura de código de barras pela câmera (nativo + ZXing no iPhone) |
+| `js/produtos.js` | busca do nome do produto pelo código no Open Food Facts |
 | `js/exemplos.js` | itens comuns de casa do "Começar rápido" (preços são chutes iniciais) |
+| `js/vendor/zxing.min.js` | leitor de código de barras para navegadores sem `BarcodeDetector` |
 | `js/app.js` | navegação, backup e registro do service worker |
 | `sw.js` | cache do app para funcionar offline |
 

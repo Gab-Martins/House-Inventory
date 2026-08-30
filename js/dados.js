@@ -23,6 +23,12 @@ export function arredondar(n) {
   return Math.round(n * 100) / 100;
 }
 
+// Guarda só datas no formato YYYY-MM-DD; qualquer outra coisa vira vazio.
+function normalizarData(valor) {
+  const s = String(valor || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+}
+
 function normalizarItem(bruto) {
   return {
     id: String(bruto.id || gerarId()),
@@ -35,6 +41,8 @@ function normalizarItem(bruto) {
     quantidadeAlvo: numero(bruto.quantidadeAlvo, 1),
     preco: bruto.preco === '' || bruto.preco == null ? null : numero(bruto.preco),
     loja: String(bruto.loja || '').trim(),
+    codigoBarras: String(bruto.codigoBarras || '').trim(),
+    validade: normalizarData(bruto.validade),
     observacoes: String(bruto.observacoes || '').trim(),
     atualizadoEm: bruto.atualizadoEm || new Date().toISOString()
   };
@@ -127,6 +135,34 @@ export function precisaRepor(item) {
   return status(item) !== 'ok';
 }
 
+// ── Validade ───────────────────────────────────────────────────
+// Datas guardadas como YYYY-MM-DD; comparo pela meia-noite local para o
+// "hoje" bater com o fuso do aparelho (Date de string ISO seria UTC).
+
+const JANELA_VENCIMENTO = 7; // dias: a partir daqui o item vira "vence em breve"
+
+export function diasParaVencer(item) {
+  if (!item.validade) return null;
+  const [a, m, d] = item.validade.split('-').map(Number);
+  const alvo = new Date(a, m - 1, d);
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  return Math.round((alvo - hoje) / 86400000);
+}
+
+export function statusValidade(item) {
+  const dias = diasParaVencer(item);
+  if (dias == null) return 'sem';
+  if (dias < 0) return 'vencido';
+  if (dias <= JANELA_VENCIMENTO) return 'vence';
+  return 'ok';
+}
+
+export function encontrarPorCodigo(codigo) {
+  const c = String(codigo || '').trim();
+  return c ? estado.itens.find(i => i.codigoBarras === c) : undefined;
+}
+
 // Quanto comprar para voltar ao nível ideal (nunca menos que 1).
 export function quantidadeAComprar(item) {
   const alvo = item.quantidadeAlvo > 0 ? item.quantidadeAlvo : Math.max(item.quantidadeMinima, 1);
@@ -207,7 +243,18 @@ export function confirmarCompras() {
     const item = estado.itens.find(i => i.id === id);
     if (!item) return;
     const alvo = item.quantidadeAlvo > 0 ? item.quantidadeAlvo : Math.max(item.quantidadeMinima, 1);
-    item.quantidade = arredondar(Math.max(alvo, item.quantidade + quantidadeAComprar(item)));
+    const vencendo = statusValidade(item) === 'vence' || statusValidade(item) === 'vencido';
+
+    if (precisaRepor(item)) {
+      item.quantidade = arredondar(Math.max(alvo, item.quantidade + quantidadeAComprar(item)));
+    } else if (vencendo) {
+      // Estava só vencendo, com estoque cheio: comprei um novo no lugar do que ia
+      // estragar — repõe até o ideal sem inflar além disso.
+      item.quantidade = arredondar(Math.max(item.quantidade, alvo));
+    }
+    // A validade guardada é do pacote antigo; some com ela para sair do lembrete.
+    if (vencendo) item.validade = '';
+
     item.atualizadoEm = agora;
     repostos++;
   });

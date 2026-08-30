@@ -10,6 +10,13 @@ export function numero(valor) {
   return Number(valor).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 }
 
+// Reformata a string da data sem passar por Date — evita o susto de fuso.
+export function formatarData(iso) {
+  if (!iso) return '';
+  const [a, m, d] = String(iso).slice(0, 10).split('-');
+  return `${d}/${m}/${a}`;
+}
+
 // Cria elementos sempre com textContent — nome de item nunca vira HTML.
 export function el(tag, atributos = {}, filhos = []) {
   const node = document.createElement(tag);

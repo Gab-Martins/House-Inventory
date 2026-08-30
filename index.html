@@ -35,6 +35,7 @@
         <select id="ordenacao" class="campo">
           <option value="nome">Nome (A–Z)</option>
           <option value="estoque">Menor estoque</option>
+          <option value="validade">Vence antes</option>
           <option value="valor">Maior valor</option>
           <option value="recente">Atualizado recente</option>
         </select>
@@ -48,33 +49,6 @@
 
   <section class="tela" id="tela-compras" role="tabpanel">
     <div class="cartao-total">
-      <svg class="gato" id="gato" data-humor="dormindo" viewBox="0 0 64 64" role="img"
-           aria-label="Gato do inventário: dorme quando não falta nada e arregala os olhos quando a lista cresce">
-        <polygon class="gato__pelo" points="13,26 15,8 30,17"/>
-        <polygon class="gato__pelo" points="51,26 49,8 34,17"/>
-        <polygon class="gato__orelha-interna" points="16,24 17,13 26,18"/>
-        <polygon class="gato__orelha-interna" points="48,24 47,13 38,18"/>
-        <ellipse class="gato__pelo" cx="32" cy="37" rx="23" ry="20"/>
-        <ellipse class="gato__bochecha" cx="15" cy="43" rx="4.6" ry="3"/>
-        <ellipse class="gato__bochecha" cx="49" cy="43" rx="4.6" ry="3"/>
-        <g class="olhos-normais">
-          <circle class="gato__cara" cx="24" cy="35" r="3"/>
-          <circle class="gato__cara" cx="40" cy="35" r="3"/>
-        </g>
-        <g class="olhos-grandes">
-          <circle class="gato__cara" cx="24" cy="35" r="4.6"/>
-          <circle class="gato__cara" cx="40" cy="35" r="4.6"/>
-        </g>
-        <g class="olhos-fechados">
-          <path class="gato__traco" d="M20 35 q4 4.5 8 0"/>
-          <path class="gato__traco" d="M36 35 q4 4.5 8 0"/>
-        </g>
-        <path class="gato__cara" d="M32 43.4 l-2.7 -2.6 h5.4 z"/>
-        <path class="gato__traco" d="M32 43.4 v2.2 M32 45.6 q-2.8 2.6 -5.2 .2 M32 45.6 q2.8 2.6 5.2 .2"/>
-        <path class="gato__traco" d="M12 38 H3 M12 43 H4 M52 38 H61 M52 43 H60"/>
-        <text class="gato__sono" x="49" y="15" font-size="9">z</text>
-        <text class="gato__sono" x="56" y="8" font-size="6">z</text>
-      </svg>
       <div>
         <span class="cartao-total__rotulo">Total estimado</span>
         <strong class="cartao-total__valor" id="total-compras">R$ 0,00</strong>
@@ -130,7 +104,15 @@
 
 </main>
 
-<button class="fab" id="btn-novo" aria-label="Cadastrar novo item">+</button>
+<button class="fab fab--scan" id="btn-scan" aria-label="Escanear código de barras">
+  <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="currentColor">
+    <rect x="3" y="6" width="1.6" height="12"/><rect x="6" y="6" width="1" height="12"/>
+    <rect x="8.5" y="6" width="2" height="12"/><rect x="12" y="6" width="1" height="12"/>
+    <rect x="14.5" y="6" width="2" height="12"/><rect x="18" y="6" width="1" height="12"/>
+    <rect x="20" y="6" width="1.4" height="12"/>
+  </svg>
+</button>
+<button class="fab fab--novo" id="btn-novo" aria-label="Cadastrar novo item">+</button>
 
 <dialog class="modal" id="modal-item">
   <form id="form-item">
@@ -138,6 +120,20 @@
 
     <label class="rotulo">Nome
       <input type="text" name="nome" class="campo" required autocomplete="off">
+    </label>
+
+    <label class="rotulo">Código de barras
+      <div class="campo-com-botao">
+        <input type="text" name="codigoBarras" class="campo" inputmode="numeric" autocomplete="off">
+        <button type="button" class="botao botao--escanear" id="btn-escanear-form" aria-label="Escanear código de barras">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor">
+            <rect x="3" y="6" width="1.6" height="12"/><rect x="6" y="6" width="1" height="12"/>
+            <rect x="8.5" y="6" width="2" height="12"/><rect x="12" y="6" width="1" height="12"/>
+            <rect x="14.5" y="6" width="2" height="12"/><rect x="18" y="6" width="1" height="12"/>
+            <rect x="20" y="6" width="1.4" height="12"/>
+          </svg>
+        </button>
+      </div>
     </label>
 
     <div class="grade-2">
@@ -171,10 +167,14 @@
       <label class="rotulo">Preço unitário (R$)
         <input type="number" name="preco" class="campo" step="0.01" min="0" inputmode="decimal" placeholder="0,00">
       </label>
-      <label class="rotulo">Onde comprar
-        <input type="text" name="loja" class="campo" autocomplete="off">
+      <label class="rotulo">Validade <span class="dica">avisa quando perto</span>
+        <input type="date" name="validade" class="campo">
       </label>
     </div>
+
+    <label class="rotulo">Onde comprar
+      <input type="text" name="loja" class="campo" autocomplete="off">
+    </label>
 
     <label class="rotulo">Observações
       <textarea name="observacoes" class="campo" rows="2"></textarea>
@@ -187,6 +187,20 @@
       <button type="submit" class="botao botao--primario">Salvar</button>
     </div>
   </form>
+</dialog>
+
+<dialog class="modal modal--scanner" id="modal-scanner">
+  <div class="scanner">
+    <div class="scanner__video-wrap">
+      <video id="scanner-video" playsinline muted></video>
+      <div class="scanner__mira"></div>
+    </div>
+    <p class="scanner__dica" id="scanner-dica">Aponte para o código de barras</p>
+    <div class="modal__acoes">
+      <span class="espaco"></span>
+      <button type="button" class="botao" id="btn-fechar-scanner">Fechar</button>
+    </div>
+  </div>
 </dialog>
 
 <datalist id="lista-categorias"></datalist>

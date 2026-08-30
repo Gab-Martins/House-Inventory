@@ -17,7 +17,9 @@ function mostrarTela(nome) {
   document.querySelectorAll('.tela').forEach(tela => {
     tela.classList.toggle('tela--ativa', tela.id === `tela-${nome}`);
   });
-  document.getElementById('btn-novo').hidden = nome !== 'inventario';
+  const soInventario = nome !== 'inventario';
+  document.getElementById('btn-novo').hidden = soInventario;
+  document.getElementById('btn-scan').hidden = soInventario;
   window.scrollTo(0, 0);
 }
 
